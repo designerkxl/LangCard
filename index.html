@@ -6,12 +6,13 @@
   <title>İngilizce Kelime Kartları</title>
   <link rel="stylesheet" type="text/css" href="styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
-
 </head>
 
 <body>
-
   <div class="container">
+    <div>
+      <h1>Kelime Kartları</h1>
+    </div>
     <div class="m-3">
       <input type="file" id="fileInput" />
     </div>
@@ -19,12 +20,14 @@
       <div class="word">Word</div>
       <div class="translation">Translation</div>
     </div>
+    <div class="desc">
+      <p>Çevirmek için <mark>kartın üzerine</mark> tıklayın.</p>
+    </div>
     <div class="buttons">
       <button id="prevButton">Önceki</button>
       <button id="nextButton">Sonraki</button>
     </div>
   </div>
-
   <script src="script.js"></script>
 </body>
 

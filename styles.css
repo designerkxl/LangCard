@@ -34,6 +34,7 @@ body {
   top: 0;
   left: 0;
   backface-visibility: hidden;
+  text-transform: capitalize;
 }
 
 .card .translation {
@@ -61,4 +62,14 @@ body {
 
 input {
   margin-bottom: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.desc {
+  text-align: center;
+  font-size: 12px;
+  font-style: italic;
 }

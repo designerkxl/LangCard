@@ -1,34 +1,107 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <title>İngilizce Kelime Kartları</title>
-  <link rel="stylesheet" type="text/css" href="styles.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Kendi Excel listenden İngilizce–Türkçe kelime kartları oluştur ve çalış.">
+  <meta name="theme-color" content="#1D4FA8">
+  <title>LangCard | İngilizce–Türkçe kelime kartları</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231D4FA8'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'%3EA%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap">
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" defer></script>
+  <script src="script.js" defer></script>
 </head>
-
 <body>
-  <div class="container">
-    <div>
-      <h1>Kelime Kartları</h1>
-    </div>
-    <div class="m-3">
-      <input type="file" id="fileInput" />
-    </div>
-    <div class="card">
-      <div class="word">Word</div>
-      <div class="translation">Translation</div>
-    </div>
-    <div class="desc">
-      <p>Çevirmek için <mark>kartın üzerine</mark> tıklayın.</p>
-    </div>
-    <div class="buttons">
-      <button id="prevButton">Önceki</button>
-      <button id="nextButton">Sonraki</button>
-    </div>
+  <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
+    <p>Dosyayı buraya bırakın</p>
   </div>
-  <script src="script.js"></script>
-</body>
 
+  <main class="app">
+    <header class="top">
+      <h1>LangCard</h1>
+      <p class="deck-info" id="deckInfo"></p>
+    </header>
+
+    <noscript>
+      <p class="status" data-type="error">Kelime kartlarının çalışması için JavaScript gerekiyor.</p>
+    </noscript>
+
+    <section class="deck-bar" aria-label="Kelime listesi">
+      <label class="btn btn-solid file-btn">
+        <input type="file" id="fileInput" accept=".xlsx,.xls,.csv,.tsv,.txt">
+        <span>Excel dosyası yükle</span>
+      </label>
+      <button type="button" class="btn btn-ghost" id="templateBtn">Şablon indir</button>
+      <p class="format-hint">İlk sütun İngilizce, ikinci sütun Türkçe karşılığı olsun. Üçüncü sütuna isteğe bağlı örnek cümle yazabilirsiniz. Dosyayı sayfaya sürükleyip de bırakabilirsiniz.</p>
+    </section>
+
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+
+    <section class="options" aria-label="Çalışma seçenekleri">
+      <button type="button" class="chip" id="dirBtn">Önce gösterilen: İngilizce</button>
+      <button type="button" class="chip" id="shuffleBtn" aria-pressed="false">Karıştır</button>
+      <button type="button" class="chip" id="unknownBtn" aria-pressed="false">Sadece bilmediklerim</button>
+      <button type="button" class="chip" id="speakBtn" hidden>Sesli oku</button>
+    </section>
+
+    <section class="progress-wrap" aria-label="İlerleme">
+      <div class="progress-meta">
+        <span id="posText"></span>
+        <span id="knownText"></span>
+      </div>
+      <div class="progress" id="progress" role="progressbar" aria-label="Tur ilerlemesi" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <span id="progressFill"></span>
+      </div>
+    </section>
+
+    <section class="stage" id="stage">
+      <div class="card-wrap" id="cardWrap">
+        <button type="button" class="card" id="card">
+          <span class="card-inner">
+            <span class="face face-front" id="faceFront">
+              <span class="lang" id="frontLang"></span>
+              <span class="word" id="frontWord"></span>
+              <span class="tap">Cevabı görmek için kartı çevirin</span>
+            </span>
+            <span class="face face-back" id="faceBack" aria-hidden="true">
+              <span class="lang" id="backLang"></span>
+              <span class="word" id="backWord"></span>
+              <span class="example" id="example" lang="en"></span>
+            </span>
+          </span>
+        </button>
+      </div>
+
+      <p class="hint">
+        <span class="hint-touch">Kartı çevirmek için dokunun, gezinmek için sağa veya sola kaydırın.</span>
+        <span class="hint-kbd">Boşluk tuşu kartı çevirir, sağ ve sol ok tuşları kartlar arasında gezdirir.</span>
+      </p>
+
+      <div class="judge">
+        <button type="button" class="btn btn-again" id="againBtn">Tekrar çalış</button>
+        <button type="button" class="btn btn-known" id="knownBtn">Biliyorum</button>
+      </div>
+
+      <div class="nav">
+        <button type="button" class="btn btn-ghost" id="prevBtn">Önceki</button>
+        <button type="button" class="btn btn-ghost" id="nextBtn">Sonraki</button>
+      </div>
+    </section>
+
+    <section class="done" id="done" hidden>
+      <h2 id="doneTitle"></h2>
+      <p id="doneText"></p>
+      <div class="done-actions">
+        <button type="button" class="btn btn-solid" id="restartBtn">Tüm kartları baştan çalış</button>
+        <button type="button" class="btn btn-outline" id="reviewBtn">Sadece bilmediklerimi çalış</button>
+        <button type="button" class="btn btn-ghost" id="resetBtn">İlerlemeyi sıfırla</button>
+      </div>
+    </section>
+
+    <p class="sr-only" id="announce" aria-live="polite"></p>
+  </main>
+</body>
 </html>
